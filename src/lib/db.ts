@@ -5,6 +5,7 @@ import pg from "pg";
 const databaseUrl = process.env.DATABASE_URL?.trim() ?? "";
 let pool: pg.Pool | undefined;
 let local: Promise<PGlite> | undefined;
+let localQueue: Promise<unknown> = Promise.resolve();
 
 export async function sql<T = Record<string, unknown>>(
   text: string,
@@ -18,7 +19,15 @@ export async function sql<T = Record<string, unknown>>(
     local = undefined;
     throw error;
   });
-  return (await (await local).query<T>(text, params)).rows;
+  // PGlite is single-connection; serialize local queries.
+  const run = localQueue.then(async () =>
+    (await (await local!).query<T>(text, params)).rows,
+  );
+  localQueue = run.then(
+    () => undefined,
+    () => undefined,
+  );
+  return run;
 }
 
 async function startLocal(): Promise<PGlite> {

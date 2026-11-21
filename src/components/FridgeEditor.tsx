@@ -8,11 +8,13 @@ const SUGGESTIONS = [
   "玉ねぎ",
   "豆腐",
   "豚肉",
+  "味噌",
   "ごはん",
   "納豆",
   "きのこ",
   "にんじん",
   "ネギ",
+  "バター",
 ];
 
 export function FridgeEditor({

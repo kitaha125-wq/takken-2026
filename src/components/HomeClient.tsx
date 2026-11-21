@@ -32,6 +32,7 @@ export function HomeClient() {
   const [message, setMessage] = useState("");
   const [preview, setPreview] = useState<RecipeDraft | null>(null);
   const [fridgeReady, setFridgeReady] = useState(false);
+  const [lastSavedId, setLastSavedId] = useState<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -105,8 +106,10 @@ export function HomeClient() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "保存に失敗しました");
+      setLastSavedId(data.recipe.id);
       setMessage(`「${data.recipe.title}」を保存しました`);
       router.prefetch(`/cook/${data.recipe.id}`);
+      router.prefetch("/saved");
     } catch (e) {
       setMessage(e instanceof Error ? e.message : "保存に失敗しました");
     } finally {
@@ -247,6 +250,11 @@ export function HomeClient() {
             {loading ? "考えています…" : "今日のレシピを提案"}
           </button>
           {message ? <p className="text-sm text-moss-deep">{message}</p> : null}
+          {lastSavedId ? (
+            <a href={`/cook/${lastSavedId}`} className="ghost-btn">
+              保存したレシピで料理モード
+            </a>
+          ) : null}
         </div>
 
         {sampleNote && recipes.length > 0 ? (
